@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fruit Card Flip Game</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .perspective {
+      perspective: 1000px;
+    }
+    .card-inner {
+      transform-style: preserve-3d;
+      transition: transform 0.6s;
+    }
+    .flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+    .card-front, .card-back {
+      backface-visibility: hidden;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+    }
+    .card-back {
+      transform: rotateY(180deg);
+    }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+  <section class="w-full max-w-4xl p-6 bg-white shadow-lg rounded-lg text-center">
+    <h2 class="text-2xl font-semibold text-gray-700 mb-4">Fruit Card Flip Game</h2>
+    <button id="resetButton" class="mb-6 px-4 py-2 text-white bg-red-500 rounded hover:bg-red-600">Reset Game</button>
+    <div class="grid grid-cols-5 gap-4" id="cardGrid"></div>
+  </section>
+  
+  <script>
+    const fruits = ['Apple', 'Banana', 'Cherry', 'Orange', 'Grape'];
+    let fruitPairs = shuffle([...fruits, ...fruits]);
+    const cardGrid = document.getElementById('cardGrid');
+    let flippedCards = [];
+    let lockBoard = false;
+    generateCards();
+
+    function generateCards() {
+      cardGrid.innerHTML = '';
+      fruitPairs.forEach((fruit) => {
+        const card = document.createElement('div');
+        card.classList.add('w-24', 'h-36', 'perspective', 'cursor-pointer', 'relative');
+        card.setAttribute('data-fruit', fruit);
+        card.onclick = () => flipCard(card);
+
+        const cardInner = document.createElement('div');
+        cardInner.classList.add('card-inner', 'relative', 'w-full', 'h-full');
+
+        const cardFront = document.createElement('div');
+        cardFront.classList.add('card-front', 'bg-blue-500', 'text-white', 'shadow-lg', 'rounded-lg', 'border', 'border-gray-300', 'flex', 'items-center', 'justify-center', 'font-semibold');
+        cardFront.textContent = 'Flip Me';
+
+        const cardBack = document.createElement('div');
+        cardBack.classList.add('card-back', 'bg-green-500', 'text-white', 'shadow-lg', 'rounded-lg', 'border', 'border-gray-300', 'flex', 'items-center', 'justify-center', 'font-semibold');
+        cardBack.textContent = fruit;
+
+        cardInner.appendChild(cardFront);
+        cardInner.appendChild(cardBack);
+        card.appendChild(cardInner);
+        cardGrid.appendChild(card);
+      });
+    }
+
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
+
+    function flipCard(card) {
+      if (lockBoard || card.classList.contains('flipped')) return;
+      card.classList.add('flipped');
+      card.querySelector('.card-inner').style.transform = 'rotateY(180deg)';
+      flippedCards.push(card);
+      if (flippedCards.length === 2) {
+        lockBoard = true;
+        const [card1, card2] = flippedCards;
+        if (card1.getAttribute('data-fruit') === card2.getAttribute('data-fruit')) {
+          flippedCards = [];
+          lockBoard = false;
+        } else {
+          setTimeout(() => {
+            card1.classList.remove('flipped');
+            card2.classList.remove('flipped');
+            card1.querySelector('.card-inner').style.transform = '';
+            card2.querySelector('.card-inner').style.transform = '';
+            flippedCards = [];
+            lockBoard = false;
+          }, 1000);
+        }
+      }
+    }
+
+    document.getElementById('resetButton').addEventListener('click', () => {
+      fruitPairs = shuffle([...fruits, ...fruits]);
+      generateCards();
+      flippedCards = [];
+      lockBoard = false;
+    });
+  </script>
+</body>
+</html>
